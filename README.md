@@ -77,11 +77,26 @@ VaurenithAuth предназначен для взаимодействия со 
 
 Реализация сервиса начнётся после согласования архитектурных решений.
 
-## Экосистема Vaurenith
-
-- [VaurenithBackend](https://github.com/Shshdevs/VaurenithBackend) — серверная бизнес-логика, облачные данные и синхронизация.
-- [VaurenithClient](https://github.com/Shshdevs/VaurenithClient) — клиентское приложение.
-
 ---
 
 **VaurenithAuth** — единая точка доверенной идентификации пользователей в экосистеме Vaurenith.
+## AUTH-002: локальная платформа
+
+Локальная платформа запускает Keycloak 26.8.2 с PostgreSQL 17.7 и Caddy как TLS reverse proxy. Keycloak работает в production режиме `start --optimized`; `start-dev` не используется. Версия и digest базового образа указаны в [Containerfile](Containerfile). До запуска просмотрите [инструкцию эксплуатации](docs/operations/README.md), [архитектуру платформы](docs/operations/platform.md) и [отчёт AUTH-002](docs/operations/AUTH-002-implementation.md).
+
+Требования: Docker Engine с Compose v2, `mkcert`, `openssl`, `curl`, `make`. Доверенный локальный сертификат создаёт `mkcert` после установки его локального CA в доверенные сертификаты ОС. Затем:
+
+1. `mkcert -install`
+2. `make init`
+3. Добавьте `127.0.0.1 auth.vaurenith.test` в hosts-файл ОС.
+4. `make up`
+5. Откройте `https://auth.vaurenith.test:8443`.
+
+Текущая рабочая ветка конфигурации — инфраструктурная: realm, пользователи, OAuth clients и flows появятся в AUTH-003. Порты БД, Keycloak HTTP и management не публикуются; локальный proxy доступен только на `127.0.0.1`. Административные API блокируются на proxy.
+
+
+## Экосистема Vaurenith
+
+- [VaurenithClient](https://github.com/Shshdevs/VaurenithClient) — клиентское приложение.
+- [VaurenithBackend](https://github.com/Shshdevs/VaurenithBackend) — серверная бизнес-логика, облачные данные и синхронизация.
+- [VaurenithClient](https://github.com/Shshdevs/VaurenithClient) — клиентское приложение.

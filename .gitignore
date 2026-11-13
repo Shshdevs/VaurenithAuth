@@ -1,0 +1,13 @@
+.env
+.local/
+.certs/
+*.log
+*.dump
+*.sql
+!docker-entrypoint-initdb.d/*.sql
+
+
+docs/architecture/
+docs/operations/AUTH-002-implementation.md
+.audit/
+.local/

@@ -1,0 +1,113 @@
+name: vaurenith-auth
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:?Set POSTGRES_IMAGE}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    mem_limit: ${POSTGRES_MEMORY_LIMIT:-1G}
+    security_opt:
+      - no-new-privileges:true
+
+  keycloak:
+    image: ${KEYCLOAK_IMAGE:?Set KEYCLOAK_IMAGE}
+    build:
+      context: .
+      dockerfile: Containerfile
+    restart: unless-stopped
+    command: ["start", "--optimized"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER:?Set POSTGRES_USER}
+      KC_HOSTNAME: https://${AUTH_HOSTNAME:?Set AUTH_HOSTNAME}
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+    secrets:
+      - postgres_password
+      - bootstrap_admin_username
+      - bootstrap_admin_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - edge
+      - data
+    expose:
+      - "8080"
+      - "9000"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -ec '</dev/tcp/127.0.0.1/9000' && bash -ec '</dev/tcp/127.0.0.1/8080'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+    mem_limit: ${KEYCLOAK_MEMORY_LIMIT:-2G}
+    stop_grace_period: 60s
+    security_opt:
+      - no-new-privileges:true
+
+  proxy:
+    image: ${CADDY_IMAGE:?Set CADDY_IMAGE}
+    restart: unless-stopped
+    environment:
+      AUTH_HOSTNAME: ${AUTH_HOSTNAME:?Set AUTH_HOSTNAME}
+    ports:
+      - "127.0.0.1:${AUTH_HTTPS_PORT:-8443}:443"
+    secrets:
+      - tls_cert
+      - tls_key
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks:
+      - edge
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  edge:
+    internal: true
+  data:
+    internal: true
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+
+secrets:
+  postgres_password:
+    file: .local/secrets/postgres_password
+  bootstrap_admin_username:
+    file: .local/secrets/bootstrap_admin_username
+  bootstrap_admin_password:
+    file: .local/secrets/bootstrap_admin_password
+  tls_cert:
+    file: .local/tls/auth.crt
+  tls_key:
+    file: .local/tls/auth.key
