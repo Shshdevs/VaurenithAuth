@@ -91,7 +91,7 @@ services:
 
 networks:
   edge:
-    internal: true
+    driver: bridge
   data:
     internal: true
 

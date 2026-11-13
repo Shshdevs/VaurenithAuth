@@ -8,5 +8,13 @@ curl --fail --silent --show-error --cacert .local/tls/rootCA.pem "https://$host:
 printf '\n'
 status="$(curl --silent --output /dev/null --write-out '%{http_code}' --cacert .local/tls/rootCA.pem "https://$host:$port/admin/")"
 [[ "$status" == 404 ]]
-[[ -z "$(docker compose port postgres 5432 2>/dev/null || true)" ]]
+postgres_id="$(docker compose ps -q postgres)"
+
+[[ -n "$postgres_id" ]]
+
+published_ports="$(docker inspect \
+  --format '{{json .HostConfig.PortBindings}}' \
+  "$postgres_id")"
+
+[[ "$published_ports" == "null" || "$published_ports" == "{}" ]]
 printf '%s\n' 'Readiness, admin path, and database publication checks passed.'
