@@ -1,0 +1,59 @@
+name: platform-foundation
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Secret scan
+        run: docker run --rm -v "$PWD:/repo:ro" zricethezav/gitleaks:v8.28.0 detect --source=/repo --no-git --redact --exit-code=1
+      - name: Initialize disposable CI secrets and certificate
+        run: |
+          cp .env.example .env
+          mkdir -p .local/secrets .local/tls
+          printf '%s' "$(openssl rand -hex 32)" > .local/secrets/postgres_password
+          openssl rand -hex 12 > .local/secrets/bootstrap_admin_username
+          printf '%s' "$(openssl rand -hex 32)" > .local/secrets/bootstrap_admin_password
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -keyout .local/tls/auth.key -out .local/tls/auth.crt -subj '/CN=auth.vaurenith.test' -addext 'subjectAltName=DNS:auth.vaurenith.test'
+          cp .local/tls/auth.crt .local/tls/rootCA.pem
+      - name: Validate Compose
+        run: docker compose config --quiet
+      - name: Build optimized Keycloak image
+        run: docker compose build keycloak
+      - name: Verify runtime image metadata
+        run: |
+          user="$(docker image inspect --format '{{.Config.User}}' local/vaurenith-keycloak:26.8.2)"
+          test -n "$user"
+          test "$user" != root
+          test "$user" != 0
+          docker image inspect --format '{{json .Config.Entrypoint}} {{json .Config.Cmd}}' local/vaurenith-keycloak:26.8.2 | grep -F 'optimized'
+      - name: Image vulnerability scan
+        run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.67.2 image --severity CRITICAL --exit-code 1 local/vaurenith-keycloak:26.8.2
+      - name: Start stack and verify readiness
+        run: |
+          echo '127.0.0.1 auth.vaurenith.test' | sudo tee -a /etc/hosts
+          docker compose up -d
+          for attempt in $(seq 1 90); do
+            if curl --silent --fail --insecure https://auth.vaurenith.test:8443/health/ready; then exit 0; fi
+            sleep 2
+          done
+          docker compose logs
+          exit 1
+      - name: Verify isolated PostgreSQL and protected management surfaces
+        run: |
+          test -z "$(docker compose port postgres 5432 2>/dev/null || true)"
+          test -z "$(docker compose port keycloak 9000 2>/dev/null || true)"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --insecure https://auth.vaurenith.test:8443/admin/)" = 404
+          docker compose exec -T keycloak bash -ec '</dev/tcp/postgres/5432'
+      - name: PostgreSQL backup and isolated restore drill
+        run: |
+          ./scripts/backup.sh
+          dump="$(find .local/backups -name '*.dump' -print -quit)"
+          ./scripts/restore-test.sh "$dump"
+      - if: always()
+        name: Stop stack
+        run: docker compose down -v
