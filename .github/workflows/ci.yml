@@ -52,16 +52,22 @@ jobs:
           make configure-backend-token-contract
       - name: Verify isolated PostgreSQL and protected management surfaces
         run: |
-          test -z "$(docker compose port postgres 5432 2>/dev/null || true)"
-          test -z "$(docker compose port keycloak 9000 2>/dev/null || true)"
+          for container in postgres keycloak; do
+            container_id="$(docker compose ps -q "$container")"
+            port_bindings="$(docker inspect --format '{{json .HostConfig.PortBindings}}' "$container_id")"
+            test "$port_bindings" = null || test "$port_bindings" = '{}'
+          done
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' --insecure https://auth.vaurenith.test:8443/admin/)" = 404
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' --insecure https://admin.auth.vaurenith.test:8444/admin/master/console/)" = 200
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' --insecure https://admin.auth.vaurenith.test:8444/admin/serverinfo)" = 401
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' --insecure https://auth.vaurenith.test:8443/realms/master/protocol/openid-connect/auth)" = 404
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' --insecure https://auth.vaurenith.test:8443/admin/serverinfo)" = 404
-          test -z "$(docker compose port proxy 443 2>/dev/null | grep -v '^127.0.0.1:' || true)"
-          test -z "$(docker compose port proxy 8444 2>/dev/null | grep -v '^127.0.0.1:' || true)"
-          test -z "$(docker compose port mailpit 8025 2>/dev/null | grep -v '^127.0.0.1:' || true)"
+          for container in proxy mailpit; do
+            container_id="$(docker compose ps -q "$container")"
+            published_hosts="$(docker inspect --format '{{range $port, $bindings := .HostConfig.PortBindings}}{{range $bindings}}{{.HostIp}}{{"\n"}}{{end}}{{end}}' "$container_id")"
+            test -n "$published_hosts"
+            test -z "$(printf '%s\n' "$published_hosts" | grep -v '^127\.0\.0\.1$' || true)"
+          done
           docker compose exec -T keycloak bash -ec '</dev/tcp/postgres/5432'
       - name: Verify realm and OIDC public contract
         run: python3 scripts/check-realm.py
