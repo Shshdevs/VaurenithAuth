@@ -18,7 +18,7 @@ jobs:
           printf '%s' "$(openssl rand -hex 32)" > .local/secrets/postgres_password
           openssl rand -hex 12 > .local/secrets/bootstrap_admin_username
           printf '%s' "$(openssl rand -hex 32)" > .local/secrets/bootstrap_admin_password
-          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -keyout .local/tls/auth.key -out .local/tls/auth.crt -subj '/CN=auth.vaurenith.test' -addext 'subjectAltName=DNS:auth.vaurenith.test'
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -keyout .local/tls/auth.key -out .local/tls/auth.crt -subj '/CN=auth.vaurenith.test' -addext 'subjectAltName=DNS:auth.vaurenith.test,DNS:admin.auth.vaurenith.test'
           cp .local/tls/auth.crt .local/tls/rootCA.pem
       - name: Validate Compose
         run: docker compose config --quiet
@@ -35,7 +35,7 @@ jobs:
         run: docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.67.2 image --severity CRITICAL --exit-code 1 local/vaurenith-keycloak:26.8.2
       - name: Start stack and verify readiness
         run: |
-          echo '127.0.0.1 auth.vaurenith.test' | sudo tee -a /etc/hosts
+          echo '127.0.0.1 auth.vaurenith.test admin.auth.vaurenith.test' | sudo tee -a /etc/hosts
           docker compose up -d
           for attempt in $(seq 1 90); do
             if curl --silent --fail --insecure https://auth.vaurenith.test:8443/health/ready; then exit 0; fi
@@ -43,12 +43,34 @@ jobs:
           done
           docker compose logs
           exit 1
+      - name: Configure isolated master realm frontend URL
+        run: make configure-admin-realm
+      - name: Configure Backend-compatible access tokens
+        run: |
+          KEYCLOAK_ADMIN_USERNAME="$(cat .local/secrets/bootstrap_admin_username)" \
+          KEYCLOAK_ADMIN_PASSWORD="$(cat .local/secrets/bootstrap_admin_password)" \
+          make configure-backend-token-contract
       - name: Verify isolated PostgreSQL and protected management surfaces
         run: |
-          test -z "$(docker compose port postgres 5432 2>/dev/null || true)"
-          test -z "$(docker compose port keycloak 9000 2>/dev/null || true)"
+          for container in postgres keycloak; do
+            container_id="$(docker compose ps -q "$container")"
+            port_bindings="$(docker inspect --format '{{json .HostConfig.PortBindings}}' "$container_id")"
+            test "$port_bindings" = null || test "$port_bindings" = '{}'
+          done
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' --insecure https://auth.vaurenith.test:8443/admin/)" = 404
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --insecure https://admin.auth.vaurenith.test:8444/admin/master/console/)" = 200
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --insecure https://admin.auth.vaurenith.test:8444/admin/serverinfo)" = 401
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --insecure https://auth.vaurenith.test:8443/realms/master/protocol/openid-connect/auth)" = 404
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --insecure https://auth.vaurenith.test:8443/admin/serverinfo)" = 404
+          for container in proxy mailpit; do
+            container_id="$(docker compose ps -q "$container")"
+            published_hosts="$(docker inspect --format '{{range $port, $bindings := .HostConfig.PortBindings}}{{range $bindings}}{{.HostIp}}{{"\n"}}{{end}}{{end}}' "$container_id")"
+            test -n "$published_hosts"
+            test -z "$(printf '%s\n' "$published_hosts" | grep -v '^127\.0\.0\.1$' || true)"
+          done
           docker compose exec -T keycloak bash -ec '</dev/tcp/postgres/5432'
+      - name: Verify realm and OIDC public contract
+        run: python3 scripts/check-realm.py
       - name: PostgreSQL backup and isolated restore drill
         run: |
           ./scripts/backup.sh

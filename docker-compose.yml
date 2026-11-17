@@ -30,12 +30,13 @@ services:
       context: .
       dockerfile: Containerfile
     restart: unless-stopped
-    command: ["start", "--optimized"]
+    command: ["start", "--optimized", "--import-realm"]
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
       KC_DB_USERNAME: ${POSTGRES_USER:?Set POSTGRES_USER}
-      KC_HOSTNAME: https://${AUTH_HOSTNAME:?Set AUTH_HOSTNAME}
+      KC_HOSTNAME: https://${AUTH_HOSTNAME:?Set AUTH_HOSTNAME}:${AUTH_HTTPS_PORT:-8443}
+      KC_HOSTNAME_ADMIN: https://${ADMIN_AUTH_HOSTNAME:-admin.auth.vaurenith.test}:${ADMIN_HTTPS_PORT:-8444}
       KC_HTTP_ENABLED: "true"
       KC_PROXY_HEADERS: xforwarded
       KC_HEALTH_ENABLED: "true"
@@ -69,8 +70,12 @@ services:
     restart: unless-stopped
     environment:
       AUTH_HOSTNAME: ${AUTH_HOSTNAME:?Set AUTH_HOSTNAME}
+      ADMIN_AUTH_HOSTNAME: ${ADMIN_AUTH_HOSTNAME:-admin.auth.vaurenith.test}
+      AUTH_HTTPS_PORT: ${AUTH_HTTPS_PORT:-8443}
+      ADMIN_HTTPS_PORT: ${ADMIN_HTTPS_PORT:-8444}
     ports:
       - "127.0.0.1:${AUTH_HTTPS_PORT:-8443}:443"
+      - "127.0.0.1:${ADMIN_HTTPS_PORT:-8444}:8444"
     secrets:
       - tls_cert
       - tls_key
@@ -86,6 +91,16 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+  mailpit:
+    image: ${MAILPIT_IMAGE:?Set MAILPIT_IMAGE}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"
+    networks:
+      - edge
     security_opt:
       - no-new-privileges:true
 

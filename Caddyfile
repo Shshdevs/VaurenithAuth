@@ -5,7 +5,7 @@
 {$AUTH_HOSTNAME}:443 {
 	tls /run/secrets/tls_cert /run/secrets/tls_key
 	@health path /health/live /health/ready
-	@admin path /admin /admin/*
+	@admin path /admin /admin/* /realms/master /realms/master/*
 	handle @health {
 		reverse_proxy keycloak:9000
 	}
@@ -14,8 +14,32 @@
 	}
 	handle {
 		reverse_proxy keycloak:8080 {
+			header_up -X-Forwarded-For
+			header_up -X-Forwarded-Host
+			header_up -X-Forwarded-Proto
+			header_up -X-Forwarded-Port
+			header_up -X-Forwarded-Prefix
+			header_up X-Forwarded-For {remote_host}
 			header_up X-Forwarded-Proto https
-			header_up X-Forwarded-Host {host}
+			header_up X-Forwarded-Host {$AUTH_HOSTNAME}
+			header_up X-Forwarded-Port {$AUTH_HTTPS_PORT}
 		}
+	}
+}
+
+{$ADMIN_AUTH_HOSTNAME}:8444 {
+	tls /run/secrets/tls_cert /run/secrets/tls_key
+	redir / https://{$ADMIN_AUTH_HOSTNAME}:{$ADMIN_HTTPS_PORT}/admin/master/console/ 308
+	redir /admin/master/console https://{$ADMIN_AUTH_HOSTNAME}:{$ADMIN_HTTPS_PORT}/admin/master/console/ 308
+	reverse_proxy keycloak:8080 {
+		header_up -X-Forwarded-For
+		header_up -X-Forwarded-Host
+		header_up -X-Forwarded-Proto
+		header_up -X-Forwarded-Port
+		header_up -X-Forwarded-Prefix
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto https
+		header_up X-Forwarded-Host {$ADMIN_AUTH_HOSTNAME}
+		header_up X-Forwarded-Port {$ADMIN_HTTPS_PORT}
 	}
 }

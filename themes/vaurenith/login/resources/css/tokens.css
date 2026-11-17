@@ -1,0 +1,13 @@
+:root {
+  --vaurenith-bg: #11131b;
+  --vaurenith-panel: rgba(25, 28, 39, 0.92);
+  --vaurenith-panel-edge: rgba(154, 169, 204, 0.16);
+  --vaurenith-text: #eef0f8;
+  --vaurenith-muted: #9da5ba;
+  --vaurenith-input: #1a1e2b;
+  --vaurenith-input-edge: #30374a;
+  --vaurenith-accent: #8bd17c;
+  --vaurenith-accent-hover: #a0df91;
+  --vaurenith-danger: #ff7e84;
+  --vaurenith-link: #a9c7ff;
+}
