@@ -6,7 +6,9 @@ RUN /opt/keycloak/bin/kc.sh build
 
 FROM ${KEYCLOAK_BASE}
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
-ENV KC_DB=postgres KC_HEALTH_ENABLED=true KC_METRICS_ENABLED=true KC_HTTP_ENABLED=true KC_PROXY_HEADERS=xforwarded KC_HOSTNAME_STRICT=true KC_HOSTNAME_STRICT_HTTPS=true
+COPY --chown=keycloak:keycloak config/realm/vaurenith-realm.json /opt/keycloak/data/import/vaurenith-realm.json
+COPY --chown=keycloak:keycloak themes/vaurenith/ /opt/keycloak/themes/vaurenith/
+ENV KC_DB=postgres KC_HEALTH_ENABLED=true KC_METRICS_ENABLED=true KC_HTTP_ENABLED=true KC_PROXY_HEADERS=xforwarded KC_HOSTNAME_STRICT=true
 EXPOSE 8080 9000
 COPY --chmod=0555 container-entrypoint.sh /opt/keycloak/bin/container-entrypoint.sh
 ENTRYPOINT ["/opt/keycloak/bin/container-entrypoint.sh"]

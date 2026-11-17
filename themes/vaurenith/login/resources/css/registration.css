@@ -1,0 +1,74 @@
+html,
+body,
+.login-pf,
+.login-pf body,
+.login-pf-page {
+  height: auto !important;
+  min-height: 100vh;
+  overflow-y: auto !important;
+}
+
+.login-pf-page {
+  box-sizing: border-box;
+  padding-top: clamp(24px, 6vh, 64px);
+  padding-bottom: clamp(24px, 6vh, 64px);
+}
+
+.login-pf-page .card-pf {
+  overflow: visible;
+}
+
+.login-pf-page .subtitle:has(.required),
+.login-pf-page .subtitle:has(.pf-v5-c-form__label-required),
+.login-pf-page .subtitle:has(.pf-v6-c-form__label-required) {
+  display: none;
+}
+
+.login-pf-page .required::after,
+.login-pf-page .pf-v5-c-form__label-required::after,
+.login-pf-page .pf-v6-c-form__label-required::after {
+  content: " Required";
+  color: var(--vaurenith-muted);
+  font-size: 0.72em;
+  font-weight: 450;
+}
+
+.login-pf-page .pf-c-input-group > button.pf-c-button.pf-m-control:focus,
+.login-pf-page .pf-c-input-group > button.pf-c-button.pf-m-control:focus-visible {
+  outline: none !important;
+  border: 0 !important;
+  border-left: 2px solid var(--vaurenith-accent) !important;
+  box-shadow: none !important;
+}
+
+.login-pf-page #kc-info {
+  margin: 32px -42px -36px;
+}
+
+.login-pf-page #kc-info-wrapper {
+  box-sizing: border-box;
+  display: flex;
+  min-height: 88px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.login-pf-page #kc-info-wrapper > * {
+  margin: 0;
+}
+
+@media (max-width: 520px) {
+  .login-pf-page #kc-info {
+    margin-right: -22px;
+    margin-bottom: -26px;
+    margin-left: -22px;
+  }
+}
+
+html[lang|="ru"] .login-pf-page .required::after,
+html[lang|="ru"] .login-pf-page .pf-v5-c-form__label-required::after,
+html[lang|="ru"] .login-pf-page .pf-v6-c-form__label-required::after {
+  content: " Обязательно";
+}

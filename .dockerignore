@@ -6,7 +6,9 @@
 !.env.example
 docs
 scripts
-config
+!config
+!config/realm
+!config/realm/*.json
 .gitignore
 .dockerignore
 .github

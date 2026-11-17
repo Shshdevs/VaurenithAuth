@@ -9,5 +9,6 @@
 
 docs/architecture/
 docs/operations/AUTH-002-implementation.md
+docs/operations/AUTH-003-implementation.md
 .audit/
 .local/

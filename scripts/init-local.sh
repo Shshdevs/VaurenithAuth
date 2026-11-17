@@ -13,7 +13,7 @@ create_secret() {
 create_secret .local/secrets/postgres_password
 create_secret .local/secrets/bootstrap_admin_password
 if [[ ! -s .local/secrets/bootstrap_admin_username ]]; then openssl rand -hex 12 > .local/secrets/bootstrap_admin_username; chmod 600 .local/secrets/bootstrap_admin_username; fi
-if [[ ! -s .local/tls/auth.crt || ! -s .local/tls/auth.key ]]; then mkcert -cert-file .local/tls/auth.crt -key-file .local/tls/auth.key auth.vaurenith.test; chmod 644 .local/tls/auth.crt; chmod 600 .local/tls/auth.key; fi
+if [[ ! -s .local/tls/auth.crt || ! -s .local/tls/auth.key ]] || ! openssl x509 -in .local/tls/auth.crt -noout -ext subjectAltName | grep -q 'admin.auth.vaurenith.test'; then mkcert -cert-file .local/tls/auth.crt -key-file .local/tls/auth.key auth.vaurenith.test admin.auth.vaurenith.test; chmod 644 .local/tls/auth.crt; chmod 600 .local/tls/auth.key; fi
 cp "$(mkcert -CAROOT)/rootCA.pem" .local/tls/rootCA.pem
 chmod 644 .local/tls/rootCA.pem
-printf '%s\n' 'Local secrets and trusted certificate are ready.' 'Add 127.0.0.1 auth.vaurenith.test to your hosts file, then run: make up'
+printf '%s\n' 'Local secrets and trusted certificate are ready.' 'Add 127.0.0.1 auth.vaurenith.test admin.auth.vaurenith.test to your hosts file, then run: make up'

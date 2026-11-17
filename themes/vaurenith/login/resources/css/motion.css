@@ -1,0 +1,16 @@
+@media (max-width: 520px) {
+  .login-pf-page .card-pf {
+    margin: 0 auto;
+    padding: 30px 22px 26px;
+    border-radius: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

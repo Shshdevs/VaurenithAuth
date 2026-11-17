@@ -1,0 +1,94 @@
+.login-pf-page .form-group,
+.login-pf-page .pf-c-form__group,
+.login-pf-page .pf-v5-c-form__group,
+.login-pf-page .pf-v6-c-form__group {
+  margin-bottom: 20px;
+}
+
+.login-pf-page label,
+.login-pf-page .pf-c-form__label-text,
+.login-pf-page .pf-v5-c-form__label-text,
+.login-pf-page .pf-v6-c-form__label-text {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #d8dced;
+  font-size: 14px;
+  font-weight: 550;
+}
+
+.login-pf-page .form-control,
+.login-pf-page input[type="text"],
+.login-pf-page input[type="email"],
+.login-pf-page input[type="password"],
+.login-pf-page input[type="tel"],
+.login-pf-page select,
+.login-pf-page .pf-c-form-control,
+.login-pf-page .pf-v5-c-form-control,
+.login-pf-page .pf-v6-c-form-control {
+  box-sizing: border-box;
+  min-height: 48px;
+  padding: 11px 15px;
+  color: var(--vaurenith-text);
+  background: var(--vaurenith-input);
+  border: 1px solid var(--vaurenith-input-edge);
+  border-radius: 12px;
+  box-shadow: none;
+  font: inherit;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+.login-pf-page .form-control::placeholder,
+.login-pf-page input::placeholder {
+  color: #727b91;
+  opacity: 1;
+}
+
+.login-pf-page .form-control:focus,
+.login-pf-page input:focus,
+.login-pf-page select:focus,
+.login-pf-page .pf-c-form-control:focus,
+.login-pf-page .pf-v5-c-form-control:focus,
+.login-pf-page .pf-v6-c-form-control:focus {
+  color: var(--vaurenith-text);
+  background: #1d2231;
+  border-color: var(--vaurenith-accent);
+  box-shadow: 0 0 0 3px rgba(139, 209, 124, 0.15);
+  outline: none;
+}
+
+.login-pf-page .btn-primary,
+.login-pf-page .pf-c-button.pf-m-primary,
+.login-pf-page .pf-v5-c-button.pf-m-primary,
+.login-pf-page .pf-v6-c-button.pf-m-primary {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  color: #111910;
+  background: var(--vaurenith-accent);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(139, 209, 124, 0.16);
+  font: inherit;
+  font-weight: 650;
+  transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.login-pf-page .btn-primary:hover,
+.login-pf-page .pf-c-button.pf-m-primary:hover,
+.login-pf-page .pf-v5-c-button.pf-m-primary:hover,
+.login-pf-page .pf-v6-c-button.pf-m-primary:hover {
+  color: #111910;
+  background: var(--vaurenith-accent-hover);
+  box-shadow: 0 10px 28px rgba(139, 209, 124, 0.24);
+  transform: translateY(-1px);
+}
+
+.login-pf-page .btn-primary:focus,
+.login-pf-page .pf-c-button.pf-m-primary:focus,
+.login-pf-page .pf-v5-c-button.pf-m-primary:focus,
+.login-pf-page .pf-v6-c-button.pf-m-primary:focus {
+  outline: 3px solid rgba(139, 209, 124, 0.32);
+  outline-offset: 2px;
+}
