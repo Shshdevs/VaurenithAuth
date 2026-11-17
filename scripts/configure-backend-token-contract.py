@@ -130,38 +130,41 @@ for profile_attribute in attributes:
 user_profile["attributes"] = attributes
 request("PUT", user_profile_path, user_profile, token=access_token)
 
-scope_config = next(
-    scope for scope in realm_config["clientScopes"]
-    if scope["name"] == "vaurenith-backend"
-)
-scopes = request("GET", f"/admin/realms/{realm_name}/client-scopes", token=access_token)
-basic_scope = next((item for item in scopes if item.get("name") == "basic"), None)
-if basic_scope is None:
-    raise SystemExit("Keycloak basic client scope was not found")
-scope = next((item for item in scopes if item.get("name") == scope_config["name"]), None)
-if scope is None:
-    create_scope = {key: value for key, value in scope_config.items() if key != "protocolMappers"}
-    request("POST", f"/admin/realms/{realm_name}/client-scopes", create_scope, token=access_token)
+def ensure_client_scope(scope_config: dict[str, Any]) -> dict[str, Any]:
     scopes = request("GET", f"/admin/realms/{realm_name}/client-scopes", token=access_token)
-    scope = next(item for item in scopes if item.get("name") == scope_config["name"])
-else:
-    scope.update({key: value for key, value in scope_config.items() if key not in {"id", "protocolMappers"}})
-    request(
-        "PUT",
-        f"/admin/realms/{realm_name}/client-scopes/{scope['id']}",
-        scope,
-        token=access_token,
-    )
-
-scope_mapper_path = f"/admin/realms/{realm_name}/client-scopes/{scope['id']}/protocol-mappers/models"
-existing_scope_mappers = request("GET", scope_mapper_path, token=access_token)
-for mapper in scope_config["protocolMappers"]:
-    current = next((item for item in existing_scope_mappers if item.get("name") == mapper["name"]), None)
-    if current:
-        mapper_with_id = {**mapper, "id": current["id"]}
-        request("PUT", f"{scope_mapper_path}/{current['id']}", mapper_with_id, token=access_token)
+    scope = next((item for item in scopes if item.get("name") == scope_config["name"]), None)
+    if scope is None:
+        create_scope = {key: value for key, value in scope_config.items() if key != "protocolMappers"}
+        request("POST", f"/admin/realms/{realm_name}/client-scopes", create_scope, token=access_token)
+        scopes = request("GET", f"/admin/realms/{realm_name}/client-scopes", token=access_token)
+        scope = next(item for item in scopes if item.get("name") == scope_config["name"])
     else:
-        request("POST", scope_mapper_path, mapper, token=access_token)
+        scope.update({key: value for key, value in scope_config.items() if key not in {"id", "protocolMappers"}})
+        request(
+            "PUT",
+            f"/admin/realms/{realm_name}/client-scopes/{scope['id']}",
+            scope,
+            token=access_token,
+        )
+
+    mapper_path = f"/admin/realms/{realm_name}/client-scopes/{scope['id']}/protocol-mappers/models"
+    existing_mappers = request("GET", mapper_path, token=access_token)
+    for mapper in scope_config["protocolMappers"]:
+        current = next((item for item in existing_mappers if item.get("name") == mapper["name"]), None)
+        if current:
+            mapper_with_id = {**mapper, "id": current["id"]}
+            request("PUT", f"{mapper_path}/{current['id']}", mapper_with_id, token=access_token)
+        else:
+            request("POST", mapper_path, mapper, token=access_token)
+    return scope
+
+
+scope_configs = {
+    scope["name"]: scope
+    for scope in realm_config["clientScopes"]
+}
+basic_scope = ensure_client_scope(scope_configs["basic"])
+scope = ensure_client_scope(scope_configs["vaurenith-backend"])
 
 for client_config in realm_config["clients"]:
     client_id = client_config["clientId"]

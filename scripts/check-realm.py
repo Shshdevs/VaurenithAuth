@@ -33,6 +33,13 @@ expected = {
 clients = {client["clientId"]: client for client in realm["clients"]}
 assert set(clients) == set(expected)
 assert "basic" in realm["defaultDefaultClientScopes"]
+basic_scope = next(scope for scope in realm["clientScopes"] if scope["name"] == "basic")
+basic_mappers = {mapper["name"]: mapper for mapper in basic_scope["protocolMappers"]}
+assert basic_mappers["sub"]["protocolMapper"] == "oidc-sub-mapper"
+assert basic_mappers["sub"]["config"]["access.token.claim"] == "true"
+assert basic_mappers["sub"]["config"]["introspection.token.claim"] == "true"
+assert basic_mappers["auth_time"]["config"]["user.session.note"] == "AUTH_TIME"
+assert basic_mappers["auth_time"]["config"]["access.token.claim"] == "true"
 for client_id, (redirect_uri, origin) in expected.items():
     client = clients[client_id]
     assert client["publicClient"] is True
