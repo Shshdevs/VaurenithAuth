@@ -41,6 +41,7 @@ services:
       KC_PROXY_HEADERS: xforwarded
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
+      JAVA_OPTS_APPEND: "-XX:-UseBASE64Intrinsics"
     secrets:
       - postgres_password
       - bootstrap_admin_username
