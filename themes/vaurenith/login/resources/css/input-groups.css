@@ -1,0 +1,102 @@
+.login-pf-page .pf-c-input-group,
+.login-pf-page .pf-v5-c-input-group,
+.login-pf-page .pf-v6-c-input-group {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+  overflow: hidden;
+  background: var(--vaurenith-input);
+  border: 1px solid var(--vaurenith-input-edge);
+  border-radius: 12px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.login-pf-page .pf-c-input-group:focus-within,
+.login-pf-page .pf-v5-c-input-group:focus-within,
+.login-pf-page .pf-v6-c-input-group:focus-within {
+  border-color: var(--vaurenith-accent);
+  box-shadow: 0 0 0 3px rgba(139, 209, 124, 0.15);
+}
+
+.login-pf-page .pf-c-input-group .pf-c-form-control,
+.login-pf-page .pf-v5-c-input-group .pf-v5-c-form-control,
+.login-pf-page .pf-v6-c-input-group .pf-v6-c-form-control {
+  flex: 1 1 auto;
+  width: 0;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  outline: none;
+}
+
+.login-pf-page .pf-c-input-group .pf-c-button.pf-m-control,
+.login-pf-page .pf-v5-c-input-group .pf-v5-c-button.pf-m-control,
+.login-pf-page .pf-v6-c-input-group .pf-v6-c-button.pf-m-control {
+  display: inline-flex;
+  flex: 0 0 50px;
+  width: 50px;
+  min-width: 50px;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--vaurenith-muted);
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--vaurenith-input-edge);
+  border-radius: 0;
+  box-shadow: none;
+  outline: none;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.login-pf-page .pf-c-input-group .pf-c-button.pf-m-control:hover,
+.login-pf-page .pf-v5-c-input-group .pf-v5-c-button.pf-m-control:hover,
+.login-pf-page .pf-v6-c-input-group .pf-v6-c-button.pf-m-control:hover {
+  color: var(--vaurenith-text);
+  background: #262c3a;
+}
+
+.login-pf-page .pf-c-input-group .pf-c-button.pf-m-control:focus-visible,
+.login-pf-page .pf-v5-c-input-group .pf-v5-c-button.pf-m-control:focus-visible,
+.login-pf-page .pf-v6-c-input-group .pf-v6-c-button.pf-m-control:focus-visible {
+  position: relative;
+  z-index: 1;
+  color: var(--vaurenith-text);
+  outline: 2px solid var(--vaurenith-accent);
+  outline-offset: -3px;
+}
+
+.login-pf-page .pf-c-input-group .pf-c-button.pf-m-control svg,
+.login-pf-page .pf-v5-c-input-group .pf-v5-c-button.pf-m-control svg,
+.login-pf-page .pf-v6-c-input-group .pf-v6-c-button.pf-m-control svg,
+.login-pf-page .pf-c-input-group .pf-c-button.pf-m-control i,
+.login-pf-page .pf-v5-c-input-group .pf-v5-c-button.pf-m-control i,
+.login-pf-page .pf-v6-c-input-group .pf-v6-c-button.pf-m-control i {
+  color: inherit;
+  fill: currentColor;
+}
+
+#kc-form-login .pf-c-input-group > button.pf-c-button.pf-m-control:focus,
+#kc-form-login .pf-c-input-group > button.pf-c-button.pf-m-control:focus-visible,
+.login-pf-page .pf-c-input-group > button.pf-c-button.pf-m-control:focus,
+.login-pf-page .pf-c-input-group > button.pf-c-button.pf-m-control:focus-visible {
+  color: var(--vaurenith-text);
+  outline: 2px solid var(--vaurenith-accent) !important;
+  outline-offset: -3px !important;
+  box-shadow: none !important;
+}
+
+.login-pf-page .pf-c-input-group > button.pf-c-button.pf-m-control::after,
+.login-pf-page .pf-c-input-group > button.pf-c-button.pf-m-control:focus::after,
+.login-pf-page .pf-c-input-group > button.pf-c-button.pf-m-control:focus-visible::after {
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+.login-pf-page .pf-c-input-group > button.pf-c-button.pf-m-control:focus-visible {
+  outline: none !important;
+  box-shadow: inset 0 0 0 2px var(--vaurenith-accent) !important;
+}
