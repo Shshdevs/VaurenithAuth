@@ -48,7 +48,7 @@ jobs:
           test -z "$(docker compose port postgres 5432 2>/dev/null || true)"
           test -z "$(docker compose port keycloak 9000 2>/dev/null || true)"
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' --insecure https://auth.vaurenith.test:8443/admin/)" = 404
-          docker compose exec -T keycloak bash -ec '</dev/tcp/postgres/5432'
+          docker compose exec -T postgres sh -ec 'PGPASSWORD="$(cat "$POSTGRES_PASSWORD_FILE")" psql --no-password --tuples-only --no-align --host=127.0.0.1 --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --command="SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND usename = current_user AND pid <> pg_backend_pid();" | grep -Eq "^[1-9][0-9]*$"'
       - name: PostgreSQL backup and isolated restore drill
         run: |
           ./scripts/backup.sh
