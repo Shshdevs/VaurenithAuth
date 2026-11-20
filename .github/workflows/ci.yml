@@ -68,7 +68,7 @@ jobs:
             test -n "$published_hosts"
             test -z "$(printf '%s\n' "$published_hosts" | grep -v '^127\.0\.0\.1$' || true)"
           done
-          docker compose exec -T keycloak bash -ec '</dev/tcp/postgres/5432'
+          docker compose exec -T postgres sh -ec 'PGPASSWORD="$(cat "$POSTGRES_PASSWORD_FILE")" psql --no-password --tuples-only --no-align --host=127.0.0.1 --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" --command="SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND usename = current_user AND pid <> pg_backend_pid();" | grep -Eq "^[1-9][0-9]*$"'
       - name: Verify realm and OIDC public contract
         run: python3 scripts/check-realm.py
       - name: PostgreSQL backup and isolated restore drill
