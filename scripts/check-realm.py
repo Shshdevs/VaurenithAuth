@@ -16,8 +16,11 @@ assert realm["duplicateEmailsAllowed"] is False
 assert realm["loginWithEmailAllowed"] is True
 assert realm["bruteForceProtected"] is True
 assert realm["resetPasswordAllowed"] is True
-assert realm["accessTokenLifespan"] <= 300
-assert realm["ssoSessionMaxLifespan"] <= 28800
+assert 0 < realm["accessTokenLifespan"] <= 300
+assert 0 < realm["ssoSessionIdleTimeout"] <= 604800
+assert 0 < realm["ssoSessionMaxLifespan"] <= 2592000
+assert 0 < realm["clientSessionIdleTimeout"] <= 604800
+assert 0 < realm["clientSessionMaxLifespan"] <= 2592000
 assert realm["revokeRefreshToken"] is True
 assert realm["refreshTokenMaxReuse"] == 0
 assert realm["defaultSignatureAlgorithm"] == "RS256"
